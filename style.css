@@ -1,0 +1,17 @@
+#firebaseui-auth-container {
+  display: none;
+}
+
+#logout {
+  display: none;
+}
+
+#login-modal {
+  max-width: 100%;
+}
+
+.login-button-image {
+  background-repeat: no-repeat;
+  background-size: contain;
+  padding-left: 3em;
+}
