@@ -26,7 +26,6 @@ var uiConfig = {
 
 firebase.auth().onAuthStateChanged(function(state) {
   updateLogin();
-
 });
 
 var updateLogin = function () {
@@ -53,6 +52,7 @@ var updateLogin = function () {
         .addClass('login-button-image')
         .css('background-image', "url('" + firebase.auth().currentUser.photoURL + "')");
 
+
     }).catch(function (error) {
     });
   } else {
@@ -75,5 +75,58 @@ var updateLogin = function () {
     $('#logout').css('display', 'none');
 
   }
+}
+
+var progressBar = null;
+
+var upload = function() {
+  firebase.auth().currentUser.getIdToken(false).then(function(token) {
+    uploadFiles(token);
+  })
+}
+
+var uploadFiles = function(token) {
+  let files = $('#file-upload')[0].files;
+  let file_arr = [];
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    file_arr.push(file);
+  }
+  getSignedUpload(uploadFile, token, file_arr);
+}
+
+var getSignedUpload = function(success, token, files) {
+  if (files.length == 0) {
+    return;
+  }
+  let pBar = $('<progress max="100">' + files[0].name + '</progress>&nbsp;' + files[0].name + '<br />');
+  progressBar = pBar;
+  $('#progress-container').append(pBar);
+  $.ajax({
+    url: apiUrl + 'signed_upload/' + token,
+    success: function(upload_url) {success(upload_url, files);}
+  });
+}
+
+var uploadFile = function(upload_url, files) {
+  let url = upload_url.url;
+  let formData = new FormData();
+  let file = files.shift()
+  formData.append('file', file);
+
+  $.ajax({
+    url: url,
+    type: 'PUT',
+    data: file,
+    processData: false,
+    contentType: false,
+    complete: function() {
+      progressBar.val(100);
+      firebase.auth().currentUser.getIdToken(false).then(function(token) {
+        getSignedUpload(uploadFile, token, files);
+      })
+    }
+  });
+
 }
 
